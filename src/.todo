@@ -1,0 +1,6 @@
+Election System Todo:
+  ☐ develop server side sockets
+  ☐ develop modifyable config through database
+  ☐ develop ballot
+  ☐ develop editor
+  ☐ fix css for everything
