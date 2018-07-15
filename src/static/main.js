@@ -13,13 +13,13 @@ function main(config){
     for(i = 0; i < config.ballot.length; i++)
     if($('.'+config.ballot[i].position_id+':checked').length > config.ballot[i].max_votes){
       this.checked = false;
-      console.log(config.ballot[i].max_votes)
     }
   });
 }
 
 function construct(config){
   var HTML_ballot_submit = document.createElement('BUTTON');
+  HTML_ballot_submit.innerHTML = "nigger"
   HTML_ballot_submit.className = "button_submit";
   HTML_ballot_submit.setAttribute('onclick', 'submit()');
   HTML_institution.innerHTML = config.institution_title;
@@ -50,6 +50,18 @@ function construct(config){
 
 function submit() {
   console.log("Attempting to submit...")
+  var foo = document.getElementsByTagName("input")
+  var votestr = ''
+  var bar = []
+  for(i = 0; i < foo.length; i++){
+    if(foo[i].checked){
+      bar.push(foo[i]);
+    }
+  }
+  for(i = 0; i < bar.length; i++){
+    votestr = votestr.concat(bar[i].id+" ")
+  }
+  socket.emit('submit-vote', votestr);
 }
 
 socket.on('callback-load-data', function(data){

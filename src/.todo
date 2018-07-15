@@ -1,6 +1,12 @@
 Election System Todo:
-  ☐ develop server side sockets
-  ☐ develop modifyable config through database
-  ☐ develop ballot
+  ✔ develop server side sockets @done(2018-07-15 13:06) @project(Election System Todo)
+  ✔ develop ballot constructor @done(2018-07-15 13:06) @project(Election System Todo)
+    ✔ save to db, votes @done(2018-07-15 14:01) @project(Election System Todo)
   ☐ develop editor
-  ☐ fix css for everything
+    ✔ skeletal @done(2018-07-15 13:06) @project(Election System Todo)
+    ☐ edit password
+    ☐ add positions
+    ☐ add candidates
+    ☐ save to json
+    ✔ count votes @done(2018-07-15 14:01) @project(Election System Todo)
+  ☐ fix css and flow for everything

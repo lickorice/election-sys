@@ -45,19 +45,52 @@ if (config_content.length==0){
   resetConfig();
   var config_content = fs.readFileSync("data/config.json")
 }
+var config = JSON.parse(config_content);
 
-// Callback on connect:
+// Callbacks on connect and emits:
 io.on('connection', function(socket){
-  socket.emit('callback-load-data', JSON.parse(config_content));
+  socket.emit('callback-load-data', config);
+  socket.on('submit-vote', function(data){
+    console.log(lstr+"Vote received: "+data)
+    db.run(
+      'INSERT INTO votes(ballot_id) VALUES(?)',
+      [data], function(err){
+        if(err){
+          console.log(lstr_err+err);
+        }
+        console.log(lstr+"Vote has been successfully inserted. ("+data+")")
+      }
+    )
+  })
 });
 io_ed.on('connection', function(socket){
-  socket.emit('callback-load-data', JSON.parse(config_content));
+  socket.emit('callback-load-data', config);
+  // socket.on('fetch-query', function(data, fn){
+  //   db.get(
+  //     'SELECT COUNT(*) AS voteCount FROM votes WHERE ballot_id LIKE ?',
+  //     ['%'+data+'%'], function(err, row){
+  //       if(err){
+  //         console.log(lstr+err);
+  //       }
+  //       var config_nigger = JSON.parse(config_content)
+  //       var nameFound
+  //       for(i = 0; i < config_nigger.ballot.length; i++) {
+  //         for(j = 0; j < config_nigger.ballot[i].candidates.length; j++)
+  //           if(config_nigger.ballot[i].candidates[j].id == data){
+  //             nameFound = config_nigger.ballot[i].candidates[j].name
+  //           }
+  //       }
+  //       console.log(row.voteCount + data + nameFound);
+  //       fn({id:data, name:nameFound, vcount:row.voteCount})
+  //     }
+  // )
+  // })
 });
 
 // Resets the config file
 function resetConfig(){
   var def_config = {
-    admin_password:"6ED462938792F5A8867C3CC2A2F91B94D357D2D878E48BA6248EBA26C5BF7FF0",
+    admin_password:"6ed462938792f5a8867c3cc2a2f91b94d357d2d878e48ba6248eba26c5bf7ff0",
     election_title:"Election Title",
     institution_title:"Default High School",
     ballot: [{
@@ -98,5 +131,3 @@ function resetConfig(){
     }
   })
 }
-
-//

@@ -5,14 +5,15 @@ var HTML_election_title = document.getElementById('t_title')
 var HTML_ballot = document.getElementById('b_master')
 
 function main(config){
-  // Constructor method
   var auth = prompt("Please enter administrator password.", "");
+  console.log(config.admin_password);
   if (sha256(auth)!=config.admin_password){
     window.alert("Access is denied.")
+    console.log(sha256(auth))
     return;
   }
-  console.log(config.admin_password)
   console.log(sha256(auth))
+  console.log(config.admin_password)
   construct(config);
 }
 
@@ -25,14 +26,15 @@ function construct(config){
     HTML_ballot_candidates.appendChild(TEXT_ballot_position);
     for(j = 0; j < config.ballot[i].candidates.length; j++){
       var HTML_ballot_candidate_name = document.createElement("DIV")
-      HTML_ballot_candidate_name.id = config.ballot[i].candidates[j].id;
-      HTML_ballot_candidate_name.innerHTML = config.ballot[i].candidates[j].name;
+      HTML_ballot_candidate_name.id = config.ballot[i].candidates[j].id
+      HTML_ballot_candidate_name.innerHTML = config.ballot[i].candidates[j].name
       HTML_ballot_candidate_name.setAttribute("ondblclick", "editCandidate(this)")
       HTML_ballot_candidates.appendChild(HTML_ballot_candidate_name);
     }
     HTML_ballot.appendChild(HTML_ballot_candidates)
   }
 }
+
 
 function edit(e){
   var foo = document.createElement("INPUT");
@@ -81,5 +83,7 @@ function saveCandidate(id){
 
 socket.on('callback-load-data', function(data){
   main(data);
-  console.log(data)
 });
+socket.on('callback-vote-count', function(data){
+
+})
