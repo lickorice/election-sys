@@ -3,15 +3,23 @@
   <head>
     <meta charset="utf-8">
     <title>Election System</title>
-    <script type="text/javascript" src="main.js"></script>
+    <script type="text/javascript" src="/socket.io.dev.js"></script>
+    <script type="text/javascript" src="/jquery-3.3.1.min.js"></script>
   </head>
   <body>
-    <div class="container_title">
-      TITLE HERE
+    <div class="container_master">
+      <div class="container_title">
+        <div class="container_inst" id="t_inst">
+          SOMETHING HIGH SCHOOL
+        </div>
+        <div class="container_title" id="t_title">
+          SOMETHING ELECTIONS
+        </div>
+      </div>
+      <div class="container_ballot" id="b_master">
+        BALLOT CONTENT HERE
+      </div>
     </div>
-
-    <div id="container_ballot">
-      BALLOT HERE
-    </div>
+    <script type="text/javascript" src="/main.js"></script>
   </body>
 </html>

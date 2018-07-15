@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<html lang="en" dir="ltr">
+  <head>
+    <meta charset="utf-8">
+    <title>Election System Editor</title>
+    <script type="text/javascript" src="socket.io.dev.js"></script>
+    <script type="text/javascript" src="sha256.min.js"></script>
+  </head>
+  <body>
+    <div class="container_title">
+      WELCOME TO THE EDITOR
+    </div>
+
+    <div class="container_master">
+      <div class="container_title">
+        <div class="container_inst" id="t_inst" ondblclick="edit(this)">
+          SOMETHING HIGH SCHOOL
+        </div>
+        <div class="container_title" id="t_title" ondblclick="edit(this)">
+          SOMETHING ELECTIONS
+        </div>
+      </div>
+      <div class="container_ballot" id="b_master">
+        BALLOT CONTENT HERE
+      </div>
+      <script type="text/javascript" src="main.js"></script>
+    </div>
+  </body>
+</html>
