@@ -45,17 +45,59 @@ var config = JSON.parse(config_content);
 console.log(db.get(config.ballot[0].candidates[0].id).write())
 
 // Function to update:
-function updateConfig(target_id, target_name, original_id){
-  console.log(lstr+target_id)
-  console.log(lstr+target_name)
+function updateCandidate(target_id, target_name, original_id){
   for(i = 0; i < config.ballot.length; i++){
     for(j = 0; j < config.ballot[i].candidates.length; j++){
       console.log(lstr+config.ballot[i].candidates[j].id)
       if(config.ballot[i].candidates[j].id == original_id){
         config.ballot[i].candidates[j].name = target_name;
         config.ballot[i].candidates[j].id = target_id;
-        console.log(lstr+config.ballot[i].candidates[j].name)
-        console.log(lstr+config.ballot[i].candidates[j].id)
+        fs.writeFile("data/config.json", JSON.stringify(config), (err)=>{
+          if (err){
+            console.log(lstr_err+err);
+          }
+        })
+      }
+    }
+  }
+}
+
+function updatePosition(target_id, target_name, target_max_votes, original_id){
+  for(i = 0; i < config.ballot.length; i++){
+    if(config.ballot[i].position_id == original_id){
+      config.ballot[i].position_id = target_id;
+      config.ballot[i].max_votes = target_max_votes;
+      config.ballot[i].position = target_name;
+      fs.writeFile("data/config.json", JSON.stringify(config), (err)=>{
+        if (err){
+          console.log(lstr_err+err);
+        }
+      })
+    }
+  }
+}
+
+// Function to add a candidate:
+function addCandidate(target_id, target_name, target_position){
+  for(i = 0; i < config.ballot.length; i++){
+    if(config.ballot[i].position_id == target_position){
+      cand_obj = {name:target_name, id:target_id}
+      config.ballot[i].candidates.push(cand_obj)
+      fs.writeFile("data/config.json", JSON.stringify(config), (err)=>{
+        if (err){
+          console.log(lstr_err+err);
+        }
+      })
+    }
+  }
+}
+
+// Function to delete a candidate:
+function delCandidate(target_id){
+  for(i = 0; i < config.ballot.length; i++){
+    for(j = 0; j < config.ballot[i].candidates.length; j++){
+      if(config.ballot[i].candidates[j].id == target_id){
+        config.ballot[i].candidates.splice(j, 1);
         fs.writeFile("data/config.json", JSON.stringify(config), (err)=>{
           if (err){
             console.log(lstr_err+err);
@@ -76,7 +118,7 @@ io.on('connection', function(socket){
 
     for(i = 0; i < voteArray.length; i++){
       var current_votes = db.get(voteArray[i])
-      if(current_votes){
+      if(current_votes != NaN){
         current_votes++;
       }else{
         current_votes = 1;
@@ -94,8 +136,19 @@ io_ed.on('connection', function(socket){
 
   socket.on('save-data-candidate-update', function(data){
     console.log(lstr+"Received "+data.id+": "+data.name)
-    updateConfig(data.id, data.name, data.orig_id);
-  })
+    updateCandidate(data.id, data.name, data.orig_id);
+  });
+  socket.on('save-data-candidate-new', function(data){
+    console.log(data);
+    addCandidate(data.id, data.name, data.position_id)
+  });
+  socket.on('delete-candidate', function(data){
+    delCandidate(data)
+  });
+
+  socket.on('save-position', function(data){
+    updatePosition(data.pos_id, data.pos_name, data.pos_max, data.orig_pos_id);
+  });
 });
 
 // Resets the config file

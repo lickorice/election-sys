@@ -7,15 +7,12 @@ var HTML_ballot = document.getElementById('b_master')
 var g_config;
 
 function main(config){
-  var auth = prompt("Please enter administrator password.", "");
-  console.log(config.admin_password);
-  if (sha256(auth)!=config.admin_password){
-    window.alert("Access is denied.")
-    console.log(sha256(auth))
-    return;
-  }
-  console.log(sha256(auth))
-  console.log(config.admin_password)
+  // var auth = prompt("Please enter administrator password.", "");
+  // console.log(config.admin_password);
+  // if (sha256(auth)!=config.admin_password){
+  //   window.alert("Access is denied.")
+  //   return;
+  // }
   construct(config);
 }
 
@@ -27,8 +24,33 @@ function construct(config){
     var HTML_ballot_candidates = document.createElement("DIV");
     HTML_ballot_candidates.className = "container_positions";
     HTML_ballot_candidates.id = config.ballot[i].position_id;
-    var TEXT_ballot_position = document.createTextNode(config.ballot[i].position);
-    HTML_ballot_candidates.appendChild(TEXT_ballot_position);
+
+    var HTML_ballot_position_title = document.createElement("DIV");
+    var foo = document.createElement("BUTTON");
+    foo.className = "button_add"
+    foo.innerHTML = "Add a position after this"
+    foo.setAttribute("onclick", "addPosition("+i+")")
+    var foobar = document.createElement("BUTTON");
+    foobar.className = "button_edit"
+    foobar.innerHTML = "Edit this position"
+    foobar.setAttribute("onclick", "editPosition('"+config.ballot[i].position_id+"', "+config.ballot[i].max_votes+", "+i+")")
+
+    HTML_ballot_position_title.id = config.ballot[i].position_id+"_tit"
+
+    var HTML_ballot_position_title_text = document.createElement("DIV")
+    HTML_ballot_position_title_text.innerHTML = config.ballot[i].position
+    HTML_ballot_position_title_text.id = config.ballot[i].position_id+"_txt"
+
+    var HTML_ballot_position_title_max = document.createElement("DIV")
+    HTML_ballot_position_title_max.innerHTML = "(Max votes: "+config.ballot[i].max_votes+")"
+
+    HTML_ballot_position_title.appendChild(HTML_ballot_position_title_text);
+    HTML_ballot_position_title.appendChild(HTML_ballot_position_title_max);
+    HTML_ballot_position_title.appendChild(foo);
+    HTML_ballot_position_title.appendChild(foobar);
+    HTML_ballot_position_title.className = "container_positions_title";
+
+    HTML_ballot_candidates.appendChild(HTML_ballot_position_title);
     for(j = 0; j < config.ballot[i].candidates.length; j++){
       var HTML_ballot_candidate_name = document.createElement("DIV")
       HTML_ballot_candidate_name.id = config.ballot[i].candidates[j].id
@@ -88,6 +110,8 @@ function edit(e){
 }
 
 function editCandidate(e){
+  document.getElementById(e.id).setAttribute("ondblclick", "null");
+
   var foo = document.createElement("INPUT");
   foo.setAttribute("type", "text");
   foo.setAttribute("value", e.innerHTML);
@@ -100,12 +124,53 @@ function editCandidate(e){
 
   var bar = document.createElement("BUTTON");
   bar.innerHTML = "Save"
-  bar.setAttribute("onclick", "saveCandidate('"+e.id+"')");
+  bar.setAttribute("onclick", "saveCandidate('"+e.id+"', "+i+")");
   bar.className = "button_save"
+
+  var bardel = document.createElement("BUTTON");
+  bardel.innerHTML = "Delete"
+  bardel.setAttribute("onclick", "deleteCandidate('"+e.id+"')");
+  bardel.className = "button_delete"
 
   e.replaceChild(foo, e.childNodes[0]);
   e.appendChild(fooid);
   e.appendChild(bar);
+  e.appendChild(bardel);
+}
+
+function editPosition(position_id, max, i){
+  var title_container = document.getElementById(position_id+"_tit")
+  var foo = document.createElement("INPUT");
+  foo.setAttribute("type", "text");
+  foo.setAttribute("value", document.getElementById(position_id+"_txt").innerHTML);
+  foo.id = position_id+"_posname";
+
+  var fooid = document.createElement("INPUT");
+  fooid.setAttribute("type", "text");
+  fooid.setAttribute("value", position_id);
+  fooid.id = position_id+"_posid";
+
+  var bar = document.createElement("INPUT");
+  bar.setAttribute("type", "text");
+  bar.setAttribute("value", max);
+  bar.id = position_id+"_posmax";
+
+  var car = document.createElement("BUTTON");
+  car.innerHTML = "Save"
+  car.setAttribute("onclick", "savePosition('"+position_id+"', "+i+")");
+  car.className = "button_save"
+
+  var carlos = document.createElement("BUTTON");
+  carlos.innerHTML = "Delete"
+  carlos.setAttribute("onclick", "deletePosition('"+position_id+"')");
+  carlos.className = "button_delete"
+
+  title_container.innerHTML = '';
+  title_container.appendChild(foo);
+  title_container.appendChild(fooid);
+  title_container.appendChild(bar);
+  title_container.appendChild(car);
+  title_container.appendChild(carlos);
 }
 
 function save(id){
@@ -116,6 +181,7 @@ function save(id){
 function saveCandidate(id){
   var e = document.getElementById(id);
   var v = document.getElementById(id+"_in").value;
+  e.setAttribute("ondblclick", "editCandidate(this)")
   e.id = document.getElementById(id+"_in_id").value;
   e.innerHTML = document.getElementById(id+"_in").value;
 
@@ -123,8 +189,99 @@ function saveCandidate(id){
   socket.emit('save-data-candidate-update', update_conf);
 }
 
+function savePosition(id, i){
+  var posid = document.getElementById(id+"_posid").value;
+  var posnm = document.getElementById(id+"_posname").value;
+  var posmx = document.getElementById(id+"_posmax").value;
+
+  var poscontainer = document.getElementById(id+"_tit");
+  var foo = document.createElement("BUTTON");
+  foo.className = "button_add"
+  foo.innerHTML = "Add a position after this"
+  foo.setAttribute("onclick", "addPosition("+i+")")
+  var foobar = document.createElement("BUTTON");
+  foobar.className = "button_edit"
+  foobar.innerHTML = "Edit this position"
+  foobar.setAttribute("onclick", "editPosition('"+posid+"', "+posmx+", "+i+")")
+
+  poscontainer.id = posid+"_tit"
+
+  var poscontainer_text = document.createElement("DIV")
+  poscontainer_text.innerHTML = posnm
+  poscontainer_text.id = posid+"_txt"
+
+  var poscontainer_max = document.createElement("DIV")
+  poscontainer_max.innerHTML = "(Max votes: "+posmx+")"
+
+  poscontainer.innerHTML = ''
+  poscontainer.appendChild(poscontainer_text);
+  poscontainer.appendChild(poscontainer_max);
+  poscontainer.appendChild(foo);
+  poscontainer.appendChild(foobar);
+
+  update_conf = {orig_pos_id: id, pos_id: posid, pos_max: posmx, pos_name: posnm}
+  socket.emit('save-position', update_conf)
+}
+
+function deleteCandidate(cand_id){
+  if (confirm("Are you sure you want to delete this candidate?")){
+    socket.emit('delete-candidate', cand_id);
+    document.getElementById(cand_id).remove();
+    document.getElementById(cand_id+"_cnt").remove();
+  }
+}
+
+function saveNewCandidate(pos_id, e){
+  var name = document.getElementById(pos_id+'_new').value;
+  var c_id = document.getElementById(pos_id+'_new_id').value;
+
+  var p_cont = document.getElementById(pos_id+"_cont");
+  p_cont.id = c_id;
+  p_cont.innerHTML = name;
+  p_cont.setAttribute("ondblclick", "editCandidate(this)");
+
+  update_conf = {id: c_id, name: name, position_id: pos_id}
+  socket.emit('save-data-candidate-new', update_conf);
+}
+
 function addCandidate(e){
-  socket.emit('add-candidate', )
+  var pos_id = e.id;
+  var parentPosition = document.getElementById(pos_id);
+    // Text fields:
+    var poscon = document.createElement("DIV");
+    poscon.className = "container_candidate_name";
+    poscon.id = pos_id+"_cont";
+
+    var foo = document.createElement("INPUT");
+    foo.setAttribute("type", "text");
+    foo.setAttribute("value", "New Candidate");
+    foo.id = pos_id+"_new";
+
+    var fooid = document.createElement("INPUT");
+    fooid.setAttribute("type", "text");
+    fooid.setAttribute("value", "N-CN");
+    fooid.id = pos_id+"_new_id";
+
+    var bar = document.createElement("BUTTON");
+    bar.innerHTML = "Save";
+    bar.setAttribute("onclick", "saveNewCandidate('"+pos_id+"', this)");
+    bar.className = "button_save";
+
+    var bardel = document.createElement("BUTTON");
+    bardel.innerHTML = "Cancel";
+    bardel.setAttribute("onclick", "cancelCandidate('"+pos_id+"')");
+    bardel.className = "button_save";
+
+    poscon.appendChild(foo);
+    poscon.appendChild(fooid);
+    poscon.appendChild(bar);
+    poscon.appendChild(bardel);
+
+  parentPosition.appendChild(poscon);
+}
+
+function cancelCandidate(position_id){
+  document.getElementById(position_id+"_cont").remove();
 }
 
 socket.on('callback-load-data', function(data){

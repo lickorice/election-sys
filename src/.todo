@@ -6,7 +6,11 @@ Election System Todo:
     ✔ skeletal @done(2018-07-15 13:06) @project(Election System Todo)
     ☐ edit password
     ☐ add positions
-    ☐ add candidates
+    ☐ delete positions
+    ☐ edit positions
+    ✔ add candidates @done(2018-07-16 02:03) @project(Election System Todo)
+    ✔ delete candidates @done(2018-07-16 02:08) @project(Election System Todo)
+    ☐ edit max votes
     ☐ save to json
     ✔ count votes @done(2018-07-15 14:01) @project(Election System Todo)
   ☐ fix css and flow for everything
