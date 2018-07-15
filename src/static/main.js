@@ -4,10 +4,10 @@ var HTML_institution = document.getElementById('t_inst')
 var HTML_election_title = document.getElementById('t_title')
 var HTML_ballot = document.getElementById('b_master')
 
+
 function main(config){
   // Constructor method
   construct(config);
-
   // Limits checks
   $('input').on('change', function(){
     for(i = 0; i < config.ballot.length; i++)

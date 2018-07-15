@@ -22,20 +22,15 @@ var io_ed = socket(server_editor);
 console.log(lstr+'Sockets successfully initialized.')
 
 // Setting up databases
-const sqlite3 = require('sqlite3').verbose();
-let db = new sqlite3.Database('data/votes.db', (err) => {
-  if(err){
-    console.log(lstr_err+err);
-  }
-  console.log(lstr+'Connected to the voting database')
-})
-// Create a table if not exists
-db.run('CREATE TABLE IF NOT EXISTS votes(id INTEGER PRIMARY KEY AUTOINCREMENT, ballot_id TEXT)', (err)=>{
-  if(err){
-    console.log(lstr_err+err)
-  }
-  console.log(lstr+'Initialized voting table')
-})
+const low = require('lowdb');
+const FileSync = require('lowdb/adapters/FileSync');
+
+const adapter = new FileSync('data/data.json');
+const db = low(adapter);
+
+db.defaults({
+  test: "Tester"
+}).write();
 
 // Initialize filestream
 var fs = require('fs')
@@ -47,44 +42,60 @@ if (config_content.length==0){
 }
 var config = JSON.parse(config_content);
 
+console.log(db.get(config.ballot[0].candidates[0].id).write())
+
+// Function to update:
+function updateConfig(target_id, target_name, original_id){
+  console.log(lstr+target_id)
+  console.log(lstr+target_name)
+  for(i = 0; i < config.ballot.length; i++){
+    for(j = 0; j < config.ballot[i].candidates.length; j++){
+      console.log(lstr+config.ballot[i].candidates[j].id)
+      if(config.ballot[i].candidates[j].id == original_id){
+        config.ballot[i].candidates[j].name = target_name;
+        config.ballot[i].candidates[j].id = target_id;
+        console.log(lstr+config.ballot[i].candidates[j].name)
+        console.log(lstr+config.ballot[i].candidates[j].id)
+        fs.writeFile("data/config.json", JSON.stringify(config), (err)=>{
+          if (err){
+            console.log(lstr_err+err);
+          }
+        })
+      }
+    }
+  }
+}
+
 // Callbacks on connect and emits:
 io.on('connection', function(socket){
   socket.emit('callback-load-data', config);
   socket.on('submit-vote', function(data){
     console.log(lstr+"Vote received: "+data)
-    db.run(
-      'INSERT INTO votes(ballot_id) VALUES(?)',
-      [data], function(err){
-        if(err){
-          console.log(lstr_err+err);
-        }
-        console.log(lstr+"Vote has been successfully inserted. ("+data+")")
+    voteArray = data.split(" ");
+    voteArray.pop();
+
+    for(i = 0; i < voteArray.length; i++){
+      var current_votes = db.get(voteArray[i])
+      if(current_votes){
+        current_votes++;
+      }else{
+        current_votes = 1;
       }
-    )
+      console.log(lstr+current_votes)
+      db.set(voteArray[i], current_votes).write();
+    }
+    // Submit vote code
   })
 });
 io_ed.on('connection', function(socket){
   socket.emit('callback-load-data', config);
-  // socket.on('fetch-query', function(data, fn){
-  //   db.get(
-  //     'SELECT COUNT(*) AS voteCount FROM votes WHERE ballot_id LIKE ?',
-  //     ['%'+data+'%'], function(err, row){
-  //       if(err){
-  //         console.log(lstr+err);
-  //       }
-  //       var config_nigger = JSON.parse(config_content)
-  //       var nameFound
-  //       for(i = 0; i < config_nigger.ballot.length; i++) {
-  //         for(j = 0; j < config_nigger.ballot[i].candidates.length; j++)
-  //           if(config_nigger.ballot[i].candidates[j].id == data){
-  //             nameFound = config_nigger.ballot[i].candidates[j].name
-  //           }
-  //       }
-  //       console.log(row.voteCount + data + nameFound);
-  //       fn({id:data, name:nameFound, vcount:row.voteCount})
-  //     }
-  // )
-  // })
+  voteCount = JSON.parse(fs.readFileSync("data/data.json"))
+  socket.emit('callback-vote-count', voteCount);
+
+  socket.on('save-data-candidate-update', function(data){
+    console.log(lstr+"Received "+data.id+": "+data.name)
+    updateConfig(data.id, data.name, data.orig_id);
+  })
 });
 
 // Resets the config file
