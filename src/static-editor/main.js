@@ -25,6 +25,8 @@ function construct(config){
   HTML_election_title.innerHTML = config.election_title;
   for(i = 0; i < config.ballot.length; i++){
     var HTML_ballot_candidates = document.createElement("DIV");
+    HTML_ballot_candidates.className = "container_positions";
+    HTML_ballot_candidates.id = config.ballot[i].position_id;
     var TEXT_ballot_position = document.createTextNode(config.ballot[i].position);
     HTML_ballot_candidates.appendChild(TEXT_ballot_position);
     for(j = 0; j < config.ballot[i].candidates.length; j++){
@@ -44,6 +46,15 @@ function construct(config){
       // if j
     }
     HTML_ballot.appendChild(HTML_ballot_candidates)
+
+    // Insert ADD button
+    var HTML_ballot_add_candidate = document.createElement("BUTTON");
+    HTML_ballot_add_candidate.className = "button_normal";
+    HTML_ballot_add_candidate.id = config.ballot[i].position_id;
+    HTML_ballot_add_candidate.innerHTML = "Add a candidate"
+    HTML_ballot_add_candidate.setAttribute("onclick", "addCandidate(this)")
+
+    HTML_ballot.appendChild(HTML_ballot_add_candidate)
   }
 }
 
@@ -110,6 +121,10 @@ function saveCandidate(id){
 
   update_conf = {id: e.id, name: v, orig_id: id}
   socket.emit('save-data-candidate-update', update_conf);
+}
+
+function addCandidate(e){
+  socket.emit('add-candidate', )
 }
 
 socket.on('callback-load-data', function(data){
