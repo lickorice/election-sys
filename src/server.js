@@ -92,6 +92,17 @@ function addCandidate(target_id, target_name, target_position){
   }
 }
 
+// Function to add a position
+function addPosition(addAfter, target_name, target_id, target_max_votes){
+  target = {position: target_name, position_id: target_id, max_votes: parseInt(target_max_votes), candidates:[]};
+  config.ballot.splice(addAfter, 0, target);
+  fs.writeFile("data/config.json", JSON.stringify(config), (err)=>{
+    if (err){
+      console.log(lstr_err+err);
+    }
+  })
+}
+
 // Function to delete a candidate:
 function delCandidate(target_id){
   for(i = 0; i < config.ballot.length; i++){
@@ -108,6 +119,20 @@ function delCandidate(target_id){
   }
 }
 
+// Function to delete a position:
+function delPosition(target_id){
+  for(i = 0; i < config.ballot.length; i++){
+    if(config.ballot[i].position_id == target_id){
+      config.ballot.splice(i, 1);
+      fs.writeFile("data/config.json", JSON.stringify(config), (err)=>{
+        if (err){
+          console.log(lstr_err+err);
+        }
+      })
+    }
+  }
+}
+
 // Callbacks on connect and emits:
 io.on('connection', function(socket){
   socket.emit('callback-load-data', config);
@@ -118,10 +143,11 @@ io.on('connection', function(socket){
 
     for(i = 0; i < voteArray.length; i++){
       var current_votes = db.get(voteArray[i])
-      if(current_votes != NaN){
-        current_votes++;
-      }else{
+      if(!current_votes || isNaN(current_votes)){
+        console.log('empty')
         current_votes = 1;
+      } else {
+        current_votes++;
       }
       console.log(lstr+current_votes)
       db.set(voteArray[i], current_votes).write();
@@ -148,6 +174,12 @@ io_ed.on('connection', function(socket){
 
   socket.on('save-position', function(data){
     updatePosition(data.pos_id, data.pos_name, data.pos_max, data.orig_pos_id);
+  });
+  socket.on('save-position-new', function(data){
+    addPosition(data.addAfter, data.position_name, data.position_id, data.max_votes);
+  });
+  socket.on('delete-position', function(data){
+    delPosition(data);
   });
 });
 

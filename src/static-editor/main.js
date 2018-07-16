@@ -67,16 +67,16 @@ function construct(config){
 
       // if j
     }
-    HTML_ballot.appendChild(HTML_ballot_candidates)
 
     // Insert ADD button
     var HTML_ballot_add_candidate = document.createElement("BUTTON");
-    HTML_ballot_add_candidate.className = "button_normal";
+    HTML_ballot_add_candidate.className = "button_add";
     HTML_ballot_add_candidate.id = config.ballot[i].position_id;
     HTML_ballot_add_candidate.innerHTML = "Add a candidate"
     HTML_ballot_add_candidate.setAttribute("onclick", "addCandidate(this)")
 
-    HTML_ballot.appendChild(HTML_ballot_add_candidate)
+    HTML_ballot_candidates.appendChild(HTML_ballot_add_candidate)
+    HTML_ballot.appendChild(HTML_ballot_candidates)
   }
 }
 
@@ -162,7 +162,7 @@ function editPosition(position_id, max, i){
 
   var carlos = document.createElement("BUTTON");
   carlos.innerHTML = "Delete"
-  carlos.setAttribute("onclick", "deletePosition('"+position_id+"')");
+  carlos.setAttribute("onclick", "deletePosition('"+position_id+"', this)");
   carlos.className = "button_delete"
 
   title_container.innerHTML = '';
@@ -187,6 +187,19 @@ function saveCandidate(id){
 
   update_conf = {id: e.id, name: v, orig_id: id}
   socket.emit('save-data-candidate-update', update_conf);
+}
+
+function saveNewCandidate(pos_id, e){
+  var name = document.getElementById(pos_id+'_new').value;
+  var c_id = document.getElementById(pos_id+'_new_id').value;
+
+  var p_cont = document.getElementById(pos_id+"_cont");
+  p_cont.id = c_id;
+  p_cont.innerHTML = name;
+  p_cont.setAttribute("ondblclick", "editCandidate(this)");
+
+  update_conf = {id: c_id, name: name, position_id: pos_id}
+  socket.emit('save-data-candidate-new', update_conf);
 }
 
 function savePosition(id, i){
@@ -223,6 +236,55 @@ function savePosition(id, i){
   socket.emit('save-position', update_conf)
 }
 
+function saveNewPosition(e, i){
+  var p = e.parentElement
+
+  var c = e.parentElement.childNodes;
+  var posname = c[0].value;
+  var posid = c[1].value;
+  var posmax = c[2].value;
+
+  var parentcont = e.parentElement;
+  var tit_text = document.createElement('DIV');
+  var tit_max = document.createElement('DIV');
+  var tit_add = document.createElement('BUTTON');
+  var tit_edit = document.createElement('BUTTON');
+
+  tit_text.id = posid+"_txt";
+
+  tit_add.className = "button_add";
+  tit_edit.className = "button_edit";
+
+  tit_add.setAttribute('onclick', 'addPosition('+i+')');
+  tit_edit.setAttribute('onclick', 'editPosition("'+posid+'", '+posmax+', '+i+')');
+
+  tit_text.innerHTML = posname
+  tit_max.innerHTML = '(Max votes: '+posmax+')'
+  tit_add.innerHTML = 'Add a position after this'
+  tit_edit.innerHTML = 'Edit this position'
+
+  p.id = posid + "_tit"
+  p.innerHTML = ''
+  p.appendChild(tit_text);
+  p.appendChild(tit_max);
+  p.appendChild(tit_add);
+  p.appendChild(tit_edit);
+
+  pp = p.parentElement;
+  // add add candidate button
+  var can_add = document.createElement('BUTTON');
+  can_add.id = posid;
+  can_add.className = 'button_add';
+  can_add.setAttribute('onclick', 'addCandidate(this)');
+  can_add.innerHTML = "Add a candidate"
+
+  pp.id = posid
+  pp.appendChild(can_add)
+
+  var update_conf = {addAfter: i, position_name: posname, position_id: posid, max_votes: posmax}
+  socket.emit('save-position-new', update_conf)
+}
+
 function deleteCandidate(cand_id){
   if (confirm("Are you sure you want to delete this candidate?")){
     socket.emit('delete-candidate', cand_id);
@@ -231,17 +293,11 @@ function deleteCandidate(cand_id){
   }
 }
 
-function saveNewCandidate(pos_id, e){
-  var name = document.getElementById(pos_id+'_new').value;
-  var c_id = document.getElementById(pos_id+'_new_id').value;
-
-  var p_cont = document.getElementById(pos_id+"_cont");
-  p_cont.id = c_id;
-  p_cont.innerHTML = name;
-  p_cont.setAttribute("ondblclick", "editCandidate(this)");
-
-  update_conf = {id: c_id, name: name, position_id: pos_id}
-  socket.emit('save-data-candidate-new', update_conf);
+function deletePosition(pos_id, e){
+  if (confirm("Are you sure you want to delete this position?")){
+    socket.emit('delete-position', pos_id);
+    e.parentElement.parentElement.remove()
+  }
 }
 
 function addCandidate(e){
@@ -277,7 +333,55 @@ function addCandidate(e){
     poscon.appendChild(bar);
     poscon.appendChild(bardel);
 
-  parentPosition.appendChild(poscon);
+  parentPosition.insertBefore(poscon, parentPosition.childNodes[parentPosition.childNodes.length - 1]);
+}
+
+function addPosition(i){
+  var container_master = document.getElementById('b_master');
+
+  // create a new div for a new position
+  var container_position = document.createElement('DIV');
+  container_position.id = 'newPos';
+  container_position.className = 'container_positions';
+
+  var container_title = document.createElement('DIV');
+  container_title.className = "container_positions_title";
+  container_title.id = 'newPos_tit'
+
+  var foo = document.createElement("INPUT");
+  foo.setAttribute("type", "text");
+  foo.setAttribute("value", "New Position");
+  foo.id = "newPos_posname";
+
+  var fooid = document.createElement("INPUT");
+  fooid.setAttribute("type", "text");
+  fooid.setAttribute("value", "NPS");
+  fooid.id = "newPos_posid";
+
+  var bar = document.createElement("INPUT");
+  bar.setAttribute("type", "text");
+  bar.setAttribute("value", "1");
+  bar.id = "newPos_posmax";
+
+  var car = document.createElement("BUTTON");
+  car.innerHTML = "Save"
+  car.setAttribute("onclick", "saveNewPosition(this, "+(i+1)+")");
+  car.className = "button_save"
+
+  var carlos = document.createElement("BUTTON");
+  carlos.innerHTML = "Delete"
+  carlos.setAttribute("onclick", "cancelPosition(this)");
+  carlos.className = "button_delete"
+
+  container_title.appendChild(foo);
+  container_title.appendChild(fooid);
+  container_title.appendChild(bar);
+  container_title.appendChild(car);
+  container_title.appendChild(carlos);
+
+  container_position.appendChild(container_title)
+
+  container_master.insertBefore(container_position, container_master.childNodes[i+2])
 }
 
 function cancelCandidate(position_id){
@@ -290,3 +394,7 @@ socket.on('callback-load-data', function(data){
 socket.on('callback-vote-count', function(data){
   constructVoteCount(data);
 });
+
+function cancelPosition(e){
+  e.parentElement.remove();
+}
