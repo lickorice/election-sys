@@ -5,23 +5,32 @@
     <title>Election System Editor</title>
     <script type="text/javascript" src="socket.io.dev.js"></script>
     <script type="text/javascript" src="sha256.min.js"></script>
+    <link rel="stylesheet" href="/main.css">
   </head>
   <body>
-    <div class="container_title">
-      WELCOME TO THE EDITOR
+    <div class="container_title_m">
+      ADMINISTRATIVE PAGE
     </div>
 
     <div class="container_master">
       <div class="container_title">
-        <div class="container_inst" id="t_inst" ondblclick="edit(this)">
+        <div class="container_data" id="t_inst" ondblclick="edit(this)">
           SOMETHING HIGH SCHOOL
         </div>
-        <div class="container_title" id="t_title" ondblclick="edit(this)">
+        <div class="container_data" id="t_title" ondblclick="edit(this)">
           SOMETHING ELECTIONS
         </div>
+        <button type="button" class="button_edit" name="button" onclick="changePassword()">
+          EDIT PASSWORD
+        </button>
+        <button type="button" class="button_delete" name="button" onclick="resetVotes()">
+          RESET VOTES
+        </button>
+        <button type="button" class="button_add" onclick="addPosition(9999)">
+          ADD NEW POSITION ON TOP
+        </button>
       </div>
       <div class="container_ballot" id="b_master">
-        BALLOT CONTENT HERE
       </div>
       <script type="text/javascript" src="main.js"></script>
     </div>

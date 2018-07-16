@@ -7,12 +7,12 @@ var HTML_ballot = document.getElementById('b_master')
 var g_config;
 
 function main(config){
-  // var auth = prompt("Please enter administrator password.", "");
-  // console.log(config.admin_password);
-  // if (sha256(auth)!=config.admin_password){
-  //   window.alert("Access is denied.")
-  //   return;
-  // }
+  var auth = prompt("Please enter administrator password.", "");
+  console.log(config.admin_password);
+  if (sha256(auth)!=config.admin_password){
+    window.alert("Access is denied.")
+    return;
+  }
   construct(config);
 }
 
@@ -28,11 +28,11 @@ function construct(config){
     var HTML_ballot_position_title = document.createElement("DIV");
     var foo = document.createElement("BUTTON");
     foo.className = "button_add"
-    foo.innerHTML = "Add a position after this"
+    foo.innerHTML = "ADD A POSITION AFTER THIS"
     foo.setAttribute("onclick", "addPosition("+i+")")
     var foobar = document.createElement("BUTTON");
     foobar.className = "button_edit"
-    foobar.innerHTML = "Edit this position"
+    foobar.innerHTML = "EDIT THIS POSITION"
     foobar.setAttribute("onclick", "editPosition('"+config.ballot[i].position_id+"', "+config.ballot[i].max_votes+", "+i+")")
 
     HTML_ballot_position_title.id = config.ballot[i].position_id+"_tit"
@@ -72,7 +72,7 @@ function construct(config){
     var HTML_ballot_add_candidate = document.createElement("BUTTON");
     HTML_ballot_add_candidate.className = "button_add";
     HTML_ballot_add_candidate.id = config.ballot[i].position_id;
-    HTML_ballot_add_candidate.innerHTML = "Add a candidate"
+    HTML_ballot_add_candidate.innerHTML = "ADD A CANDIDATE"
     HTML_ballot_add_candidate.setAttribute("onclick", "addCandidate(this)")
 
     HTML_ballot_candidates.appendChild(HTML_ballot_add_candidate)
@@ -99,11 +99,12 @@ function edit(e){
   foo.setAttribute("type", "text");
   foo.setAttribute("value", e.innerHTML);
   foo.id = e.id+"_in"
+  foo.className = "text_edit_1"
 
   var bar = document.createElement("BUTTON");
   bar.innerHTML = "Save"
   bar.setAttribute("onclick", "save('"+e.id+"')");
-  bar.className = "button_save"
+  bar.className = "button_add"
 
   e.replaceChild(foo, e.childNodes[0]);
   e.appendChild(bar);
@@ -125,7 +126,7 @@ function editCandidate(e){
   var bar = document.createElement("BUTTON");
   bar.innerHTML = "Save"
   bar.setAttribute("onclick", "saveCandidate('"+e.id+"', "+i+")");
-  bar.className = "button_save"
+  bar.className = "button_add"
 
   var bardel = document.createElement("BUTTON");
   bardel.innerHTML = "Delete"
@@ -158,7 +159,7 @@ function editPosition(position_id, max, i){
   var car = document.createElement("BUTTON");
   car.innerHTML = "Save"
   car.setAttribute("onclick", "savePosition('"+position_id+"', "+i+")");
-  car.className = "button_save"
+  car.className = "button_add"
 
   var carlos = document.createElement("BUTTON");
   carlos.innerHTML = "Delete"
@@ -176,6 +177,20 @@ function editPosition(position_id, max, i){
 function save(id){
   var e = document.getElementById(id);
   e.innerHTML = document.getElementById(id+"_in").value;
+
+  var keyup;
+  if(id == 't_inst'){
+    keyup = "institution_title"
+  }else{
+    keyup = "election_title"
+  }
+  update_conf = {key: keyup, value: e.innerHTML}
+  socket.emit('save-value', update_conf)
+}
+
+function saveValue(nkey, nvalue){
+  update_conf = {key: nkey, value: nvalue}
+  socket.emit('save-value', update_conf)
 }
 
 function saveCandidate(id){
@@ -321,12 +336,12 @@ function addCandidate(e){
     var bar = document.createElement("BUTTON");
     bar.innerHTML = "Save";
     bar.setAttribute("onclick", "saveNewCandidate('"+pos_id+"', this)");
-    bar.className = "button_save";
+    bar.className = "button_add";
 
     var bardel = document.createElement("BUTTON");
     bardel.innerHTML = "Cancel";
     bardel.setAttribute("onclick", "cancelCandidate('"+pos_id+"')");
-    bardel.className = "button_save";
+    bardel.className = "button_delete";
 
     poscon.appendChild(foo);
     poscon.appendChild(fooid);
@@ -366,10 +381,10 @@ function addPosition(i){
   var car = document.createElement("BUTTON");
   car.innerHTML = "Save"
   car.setAttribute("onclick", "saveNewPosition(this, "+(i+1)+")");
-  car.className = "button_save"
+  car.className = "button_add"
 
   var carlos = document.createElement("BUTTON");
-  carlos.innerHTML = "Delete"
+  carlos.innerHTML = "Cancel"
   carlos.setAttribute("onclick", "cancelPosition(this)");
   carlos.className = "button_delete"
 
@@ -381,7 +396,12 @@ function addPosition(i){
 
   container_position.appendChild(container_title)
 
-  container_master.insertBefore(container_position, container_master.childNodes[i+2])
+  console.log(container_master.childNodes[i+2])
+  if(i == 9999){
+    container_master.insertBefore(container_position, container_master.childNodes[0])
+  }else{
+    container_master.insertBefore(container_position, container_master.childNodes[i+2])
+  }
 }
 
 function cancelCandidate(position_id){
@@ -397,4 +417,27 @@ socket.on('callback-vote-count', function(data){
 
 function cancelPosition(e){
   e.parentElement.remove();
+}
+
+function changePassword(){
+  newPass = prompt("Please enter new password.")
+  if(newPass == prompt("Please confirm your new password.")){
+    if(g_config.admin_password == sha256(prompt("Please enter original administrator password."))){
+      saveValue('admin_password', sha256(newPass));
+    }else{
+      alert("Wrong password.")
+    }
+  }else{
+    alert("Passwords do not match up.")
+  }
+}
+
+function resetVotes(){
+  var auth = prompt("Are you sure you want to do this? Please enter administrator password.", "");
+  if (sha256(auth)!=g_config.admin_password){
+    window.alert("Access is denied.")
+    return;
+  }
+
+  socket.emit('reset-votes')
 }

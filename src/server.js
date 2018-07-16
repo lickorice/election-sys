@@ -25,8 +25,8 @@ console.log(lstr+'Sockets successfully initialized.')
 const low = require('lowdb');
 const FileSync = require('lowdb/adapters/FileSync');
 
-const adapter = new FileSync('data/data.json');
-const db = low(adapter);
+var adapter = new FileSync('data/data.json');
+var db = low(adapter);
 
 db.defaults({
   test: "Tester"
@@ -41,8 +41,6 @@ if (config_content.length==0){
   var config_content = fs.readFileSync("data/config.json")
 }
 var config = JSON.parse(config_content);
-
-console.log(db.get(config.ballot[0].candidates[0].id).write())
 
 // Function to update:
 function updateCandidate(target_id, target_name, original_id){
@@ -133,6 +131,16 @@ function delPosition(target_id){
   }
 }
 
+// Update a certain value:
+function updateValue(key, value){
+  config[key] = value
+  fs.writeFile("data/config.json", JSON.stringify(config), (err)=>{
+    if (err){
+      console.log(lstr_err+err);
+    }
+  })
+}
+
 // Callbacks on connect and emits:
 io.on('connection', function(socket){
   socket.emit('callback-load-data', config);
@@ -144,7 +152,6 @@ io.on('connection', function(socket){
     for(i = 0; i < voteArray.length; i++){
       var current_votes = db.get(voteArray[i])
       if(!current_votes || isNaN(current_votes)){
-        console.log('empty')
         current_votes = 1;
       } else {
         current_votes++;
@@ -165,7 +172,6 @@ io_ed.on('connection', function(socket){
     updateCandidate(data.id, data.name, data.orig_id);
   });
   socket.on('save-data-candidate-new', function(data){
-    console.log(data);
     addCandidate(data.id, data.name, data.position_id)
   });
   socket.on('delete-candidate', function(data){
@@ -181,6 +187,22 @@ io_ed.on('connection', function(socket){
   socket.on('delete-position', function(data){
     delPosition(data);
   });
+
+  socket.on('save-value', function(data){
+    updateValue(data.key, data.value)
+  })
+
+  socket.on('reset-votes', function(){
+    console.log(lstr+"Received a votes reset signal.")
+    console.log(lstr+"Resetting...")
+    fs.writeFile("data/data.json", '{}', (err)=>{
+      if (err){
+        console.log(lstr_err+err);
+      }
+    })
+    adapter = new FileSync('data/data.json')
+    db = low(adapter)
+  })
 });
 
 // Resets the config file
