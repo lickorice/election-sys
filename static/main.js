@@ -82,6 +82,8 @@ function submit() {
     c[i].checked = false;
   }
 
+  window.scrollTo(0, 0);
+
   var niggersshouldbeslaves = true;
   while(niggersshouldbeslaves){
     if('cfgp'==prompt("Thank you for voting! Please leave the precinct.")){
